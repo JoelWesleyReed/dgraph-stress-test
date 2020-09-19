@@ -215,19 +215,53 @@ func (q *Quads) Request() *dgoapi.Request {
 		CommitNow: true,
 	}
 	if len(q.upsertIDs) > 0 {
-		var buf strings.Builder
-		buf.WriteString("query {\n")
-		count := 0
-		for _, uqr := range q.upsertIDs {
-			buf.WriteString(fmt.Sprintf("\tqu%d(func: eq(%s, \"%s\")) @filter(type(%s)) {\n", count, uqr.field, uqr.value, uqr.nodeType))
-			buf.WriteString(fmt.Sprintf("\t\t%s as uid\n", uqr.id))
-			buf.WriteString("\t}\n")
-			count++
-		}
-		buf.WriteString("}")
-		req.Query = buf.String()
+		req.Query = q.upsertQuery()
 	}
 	return req
+}
+
+func (q *Quads) String() string {
+	var buf strings.Builder
+	if len(q.upsertIDs) > 0 {
+		buf.WriteString("# Upsert Query\n")
+		buf.WriteString(q.upsertQuery())
+		buf.WriteString("}\n\n")
+	}
+	if len(q.setQuads) > 0 {
+		buf.WriteString("# Set Quads\n")
+		for _, sq := range q.setQuads {
+			obj := sq.ObjectId
+			if obj == "" {
+				obj = "\"" + sq.ObjectValue.GetStrVal() + "\""
+			}
+			buf.WriteString(fmt.Sprintf("%s %s %s .\n", sq.Subject, sq.Predicate, obj))
+		}
+	}
+	if len(q.delQuads) > 0 {
+		buf.WriteString("# Del Quads\n")
+		for _, dq := range q.delQuads {
+			obj := dq.ObjectId
+			if obj == "" {
+				obj = dq.ObjectValue.GetStrVal()
+			}
+			buf.WriteString(fmt.Sprintf("%s %s %s .\n", dq.Subject, dq.Predicate, obj))
+		}
+	}
+	return buf.String()
+}
+
+func (q *Quads) upsertQuery() string {
+	var buf strings.Builder
+	buf.WriteString("query {\n")
+	count := 0
+	for _, uqr := range q.upsertIDs {
+		buf.WriteString(fmt.Sprintf("\tqu%d(func: eq(%s, \"%s\")) @filter(type(%s)) {\n", count, uqr.field, uqr.value, uqr.nodeType))
+		buf.WriteString(fmt.Sprintf("\t\t%s as uid\n", uqr.id))
+		buf.WriteString("\t}\n")
+		count++
+	}
+	buf.WriteString("}")
+	return buf.String()
 }
 
 // Clear clears the quads

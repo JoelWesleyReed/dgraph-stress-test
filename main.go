@@ -65,7 +65,7 @@ func initDgraphConn(ctx context.Context, dgraphURLs []string, nodeTypeCount, nod
 	for k := 0; k < nodeTypeCount; k++ {
 		schema.WriteString(fmt.Sprintf("LINK%d: [uid] .\n", k))
 	}
-	// fmt.Printf("Schema:\n%s\n", schema.String())
+	fmt.Printf("Schema:\n%s\n", schema.String())
 	err = dgc.LoadSchema(ctx, Schema(schema.String()))
 	if err != nil {
 		return dgc, err
@@ -163,6 +163,8 @@ func testFullyConnected(ctx context.Context, dgc *GraphConnection, nodeTypeCount
 			}
 		}
 
+		fmt.Printf("%s\n\n\n\n", quads.String())
+
 		startTime := time.Now()
 		err := dgc.Mutate(context.Background(), quads)
 		endTime := time.Now()
@@ -198,7 +200,7 @@ func main() {
 	}
 	defer dgc.Close()
 
-	err = testFullyConnected(context.Background(), dgc, *predStringLen, *nodeTypeCount, *nodePredCount, *rounds)
+	err = testFullyConnected(context.Background(), dgc, *nodeTypeCount, *nodePredCount, *predStringLen, *rounds)
 	if err != nil {
 		panic(err)
 	}
