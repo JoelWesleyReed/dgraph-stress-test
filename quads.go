@@ -225,7 +225,7 @@ func (q *Quads) String() string {
 	if len(q.upsertIDs) > 0 {
 		buf.WriteString("# Upsert Query\n")
 		buf.WriteString(q.upsertQuery())
-		buf.WriteString("}\n\n")
+		buf.WriteString("\n\n")
 	}
 	if len(q.setQuads) > 0 {
 		buf.WriteString("# Set Quads\n")
